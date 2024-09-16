@@ -1,142 +1,73 @@
 # VBA-challenge
-Sub CalculateQuarterlyStockChangeAllSheets()
-    Dim ws As Worksheet
-    
-    ' Loop through each worksheet in the workbook
-    For Each ws In ThisWorkbook.Sheets
-        ' Call the function that calculates and formats the data for each worksheet
-        CalculateQuarterlyStockChange ws
-    Next ws
-End Sub
+Instructions
+Create a script that loops through all the stocks for each quarter and outputs the following information:
 
-Sub CalculateQuarterlyStockChange(ws As Worksheet)
-    Dim lastRow As Long, i As Long
-    Dim ticker As String
-    Dim openPrice As Double, closePrice As Double
-    Dim startDate As Date, endDate As Date
-    Dim quarterlyChange As Double, percentChange As Double
-    Dim totalVolume As Double
-    Dim currentQuarter As Integer, newQuarter As Integer
-    
-    ' Variables to track the greatest increases, decreases, and volumes
-    Dim maxPercentIncrease As Double, maxPercentIncreaseTicker As String
-    Dim maxPercentDecrease As Double, maxPercentDecreaseTicker As String
-    Dim maxTotalVolume As Double, maxTotalVolumeTicker As String
-    
-    ' Initialize tracking variables
-    maxPercentIncrease = -100000
-    maxPercentDecrease = 100000
-    maxTotalVolume = 0
-    
-    ' Find the last row of data in the sheet
-    lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
-    
-    ' Output headers in the result columns
-    ws.Cells(1, 10).Value = "Ticker"
-    ws.Cells(1, 11).Value = "Quarterly Change"
-    ws.Cells(1, 12).Value = "Percent Change"
-    ws.Cells(1, 13).Value = "Total Stock Volume"
-    
-    Dim outputRow As Long
-    outputRow = 2
-    
-    For i = 2 To lastRow
-        ' Get ticker symbol
-        ticker = ws.Cells(i, 1).Value
-        
-        ' Get date and quarter for the current row
-        startDate = ws.Cells(i, 2).Value
-        currentQuarter = DatePart("q", startDate)
-        
-        ' Initialize variables for the current quarter
-        openPrice = ws.Cells(i, 3).Value
-        totalVolume = 0
-        
-        ' Loop through the quarter
-        Do While ticker = ws.Cells(i, 1).Value And currentQuarter = DatePart("q", ws.Cells(i, 2).Value)
-            ' Keep updating the close price and sum up the volume
-            closePrice = ws.Cells(i, 6).Value
-            totalVolume = totalVolume + ws.Cells(i, 7).Value
-            
-            i = i + 1
-            If i > lastRow Then Exit Do
-        Loop
-        
-        ' Calculate the quarterly change and percent change
-        quarterlyChange = closePrice - openPrice
-        If openPrice <> 0 Then
-            percentChange = (quarterlyChange / openPrice) * 100
-        Else
-            percentChange = 0
-        End If
-        
-        ' Output the results
-        ws.Cells(outputRow, 10).Value = ticker
-        ws.Cells(outputRow, 11).Value = Format(quarterlyChange, "0.00")
-        ws.Cells(outputRow, 12).Value = Format(percentChange, "0.00") & "%"
-        ws.Cells(outputRow, 13).Value = totalVolume
-        
-        ' Check for greatest percentage increase
-        If percentChange > maxPercentIncrease Then
-            maxPercentIncrease = percentChange
-            maxPercentIncreaseTicker = ticker
-        End If
-        
-        ' Check for greatest percentage decrease
-        If percentChange < maxPercentDecrease Then
-            maxPercentDecrease = percentChange
-            maxPercentDecreaseTicker = ticker
-        End If
-        
-        ' Check for greatest total volume
-        If totalVolume > maxTotalVolume Then
-            maxTotalVolume = totalVolume
-            maxTotalVolumeTicker = ticker
-        End If
-        
-        ' Increment the output row
-        outputRow = outputRow + 1
-        
-        ' Decrement i to process the row again after exiting the loop
-        i = i - 1
-    Next i
-    ' Insert Table Labels Ticker and Value
-    ws.Cells(1, 17).Value = "Ticker"
-    ws.Cells(1, 18).Value = "Value"
-    
-    ' Output the stock with the greatest percentage increase
-    ws.Cells(2, 16).Value = "Greatest % Increase"
-    ws.Cells(2, 17).Value = maxPercentIncreaseTicker
-    ws.Cells(2, 18).Value = Format(maxPercentIncrease, "0.00") & "%"
-    
-    ' Output the stock with the greatest percentage decrease
-    ws.Cells(3, 16).Value = "Greatest % Decrease"
-    ws.Cells(3, 17).Value = maxPercentDecreaseTicker
-    ws.Cells(3, 18).Value = Format(maxPercentDecrease, "0.00") & "%"
-    
-    ' Output the stock with the greatest total volume
-    ws.Cells(4, 16).Value = "Greatest Total Volume"
-    ws.Cells(4, 17).Value = maxTotalVolumeTicker
-    ws.Cells(4, 18).Value = maxTotalVolume
-    
-    ' Apply conditional formatting for quarterly changes (Column K)
-    ApplyConditionalFormatting ws, 11, outputRow - 1
-End Sub
+The ticker symbol
 
-Sub ApplyConditionalFormatting(ws As Worksheet, col As Long, lastRow As Long)
-    Dim rng As Range
-    Set rng = ws.Range(ws.Cells(2, col), ws.Cells(lastRow, col))
-    
-    ' Clear any existing conditional formatting
-    rng.FormatConditions.Delete
-    
-    ' Apply conditional formatting for positive values (green)
-    With rng.FormatConditions.Add(Type:=xlCellValue, Operator:=xlGreater, Formula1:="=0")
-        .Interior.Color = RGB(144, 238, 144) ' Light green color
-    End With
-    
-    ' Apply conditional formatting for negative values (red)
-    With rng.FormatConditions.Add(Type:=xlCellValue, Operator:=xlLess, Formula1:="=0")
-        .Interior.Color = RGB(255, 99, 71) ' Red color
-    End With
-End Sub
+Quarterly change from the opening price at the beginning of a given quarter to the closing price at the end of that quarter.
+
+The percentage change from the opening price at the beginning of a given quarter to the closing price at the end of that quarter.
+
+The total stock volume of the stock. The result should match the following image:
+
+Moderate solution
+Add functionality to your script to return the stock with the "Greatest % increase", "Greatest % decrease", and "Greatest total volume". The solution should match the following image:
+
+Hard solution
+Make the appropriate adjustments to your VBA script to enable it to run on every worksheet (that is, every quarter) at once.
+
+note
+Make sure to use conditional formatting that will highlight positive change in green and negative change in red.
+
+Other Considerations
+Use the sheet alphabetical_testing.xlsx while developing your code. This dataset is smaller and will allow you to test faster. Your code should run on this file in just a few seconds.
+
+Make sure that the script acts the same on every sheet. The joy of VBA is that it takes the tediousness out of repetitive tasks with the click of a button.
+
+Requirements
+Retrieval of Data (20 points)
+The script loops through one quarter of stock data and reads/ stores all of the following values from each row:
+
+ticker symbol (5 points)
+
+volume of stock (5 points)
+
+open price (5 points)
+
+close price (5 points)
+
+Column Creation (10 points)
+On the same worksheet as the raw data, or on a new worksheet all columns were correctly created for:
+
+ticker symbol (2.5 points)
+
+total stock volume (2.5 points)
+
+quarterly change ($) (2.5 points)
+
+percent change (2.5 points)
+
+Conditional Formatting (20 points)
+Conditional formatting is applied correctly and appropriately to the quarterly change column (10 points)
+
+Conditional formatting is applied correctly and appropriately to the percent change column (10 points)
+
+Calculated Values (15 points)
+All three of the following values are calculated correctly and displayed in the output:
+
+Greatest % Increase (5 points)
+
+Greatest % Decrease (5 points)
+
+Greatest Total Volume (5 points)
+
+Looping Across Worksheet (20 points)
+The VBA script can run on all sheets successfully.
+GitHub/GitLab Submission (15 points)
+All three of the following are uploaded to GitHub/GitLab:
+
+Screenshots of the results (5 points)
+
+Separate VBA script files (5 points)
+
+README file (5 points)
